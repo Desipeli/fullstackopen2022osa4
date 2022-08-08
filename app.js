@@ -3,10 +3,8 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const express = require('express')
 const blogsRouter = require('./controllers/blogs')
-const Blog = require('./models/blog')
 
 const app = express()
-
 const mongoUrl = config.MONGODB_URI
 mongoose.connect(mongoUrl)
 
