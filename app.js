@@ -3,6 +3,7 @@ const middleware = require('./utils/middleware')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const express = require('express')
+require('express-async-errors')
 const blogsRouter = require('./controllers/blogs')
 
 const app = express()

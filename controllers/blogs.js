@@ -6,6 +6,13 @@ blogsRouter.get('/', async (request, response) => {
   response.json(blogs)
 })
 
+blogsRouter.get('/:id', async (request, response, next) => {
+
+    const blog = await Blog.findById(request.params.id)
+    response.json(blog)
+
+})
+
 blogsRouter.post('/', async (request, response, next) => {
 
   const blog = await new Blog({
@@ -15,13 +22,32 @@ blogsRouter.post('/', async (request, response, next) => {
     likes: request.body.likes || 0
   })
 
-  try {
     const savedBlog = await blog.save(blog)
     response.status(201).json(savedBlog)
-  } catch(exception) {
-    next(exception)
+
+})
+
+blogsRouter.delete('/:id', async (request, response, next) => {
+    await Blog.findByIdAndRemove(request.params.id)
+    response.status(204).end()
+})
+
+blogsRouter.put('/:id', async (request, response, next) => {
+  const body = request.body
+
+  const blog = {
+    title: body.title,
+    author: body.author,
+    url: body.url,
+    likes: body.likes
   }
-  
+
+    const updated = await Blog.findByIdAndUpdate(request.params.id, blog, {new: true, runValidators: true})
+    if (updated) {
+      response.json(updated)
+    } else {
+      response.status(404).json({error: "no blogs with given id"})
+    }
 })
 
 module.exports = blogsRouter
