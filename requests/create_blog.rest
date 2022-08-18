@@ -4,6 +4,6 @@ Content-Type: application/json
 {
     "title": "Titteli7",
     "author": "Autori7",
-    "url": "urli7",
+    "url": "",
     "likes": 70
 }

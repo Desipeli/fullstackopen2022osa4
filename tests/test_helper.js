@@ -39,6 +39,38 @@ const initialBlogs = [
   }
 ]
 
+const singleBlog = {
+  title: "otsikko",
+  author: "kirjoittaja",
+  url: "urli6",
+  likes: 11
+}
+
+const singleBlogNoLikes = {
+  title: "ei tykkäyksiä",
+  author: "surku",
+  url: "urli6",
+  likes: "",
+}
+
+const blogNoTitle = {
+  title: "",
+  author: "noTitle",
+  url: "urli123",
+  likes: "0",
+}
+
+const blogNoUrl = {
+  title: "noUrl",
+  author: "kirjoittaja",
+  url: "",
+  likes: 11
+}
+
 module.exports = {
   initialBlogs,
+  singleBlog,
+  singleBlogNoLikes,
+  blogNoTitle,
+  blogNoUrl,
 }
