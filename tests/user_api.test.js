@@ -93,6 +93,16 @@ describe('User tests', () => {
       const users = await api.get('/api/users')
       expect(users.body).toHaveLength(0)
     })
+
+    test('with username already in database', async () => {
+      const user = {username:"unimi" ,name: "nimi", password: "salis"}
+      const response = await api.post('/api/users').send(user)
+      expect(response.status).toBe(201)
+
+      const response2 = await api.post('/api/users').send(user)
+      expect(response2.status).toBe(400)
+      expect(response2.body.error).toBe('username must be unique')
+    })
   })
 })
 
