@@ -1,9 +1,15 @@
 const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
-  username: String,
+  username: {
+    type: String,
+    required: [true, 'required and must be at least 3 characters long'],
+    minlength: [3, 'must be at least 3 characters long']
+  },
   name: String,
-  passwordHash: String
+  passwordHash: {
+    type: String,
+  },
 })
 
 userSchema.set('toJSON', {
