@@ -6,12 +6,14 @@ const initialBlogs = [
     "author": "Autori",
     "url": "urli",
     "likes": 10,
+    "user": "12ji12d12d",
   },
   {
     "title": "Titteli2",
     "author": "Autori2",
     "url": "urli2",
     "likes": 20,
+    "user": "12ji12d12d",
   },
   {
     "title": "Titteli3",
@@ -73,6 +75,12 @@ const user1 = {
   "password": "salasana"
 }
 
+const user2 = {
+  "username": "aaa",
+  "name": "aaa aaa",
+  "password": "aaa"
+}
+
 module.exports = {
   initialBlogs,
   singleBlog,
@@ -81,4 +89,5 @@ module.exports = {
   blogNoUrl,
 
   user1,
+  user2
 }

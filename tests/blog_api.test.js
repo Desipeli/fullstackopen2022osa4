@@ -3,18 +3,49 @@ const supertest = require('supertest')
 const app = require('../app')
 const helper = require('./test_helper')
 const Blog = require('../models/blog')
+const User = require('../models/user')
 
 const api = supertest(app)
-
+let token1 = "moi"
+let token2 = "hei"
 describe('when there are blogs in the database', () => {
 
+
   beforeEach(async () => {
+
+    await User.deleteMany({})
+    const user1 = helper.user1
+    await api.post('/api/users')
+      .set('Content-Type', 'application/json')
+      .send(user1)
+    
+    const login1 = await api.post('/api/login')
+        .set('Content-Type', 'application/json')
+        .send({ username: helper.user1.username, password: helper.user1.password})
+
+    token1 = login1.body.token
+
+    const user2 = helper.user2
+    await api.post('/api/users')
+      .set('Content-Type', 'application/json')
+      .send(user2)
+    
+    const login2 = await api.post('/api/login')
+        .set('Content-Type', 'application/json')
+        .send({ username: helper.user2.username, password: helper.user2.password})
+      
+      token2 = login2.body.token
+
     await Blog.deleteMany({})
 
-    const blogObjects = helper.initialBlogs
-      .map(blog => new Blog(blog))
-    const promiseArray = blogObjects.map(blog => blog.save())
-    await Promise.all(promiseArray)
+    const saveBlogs = helper.initialBlogs
+      .map(blog => ({...blog, user: helper.user1.id}))
+      for (const blog of saveBlogs) {
+        await api.post('/api/blogs')
+          .set('Authorization', `Bearer ${token1}`)
+          .send(blog)
+      }
+
   })
 
   describe('get', () => {
@@ -50,8 +81,12 @@ describe('when there are blogs in the database', () => {
   describe('post blog', () => {
 
     test('and verify it was saved in db', async () => {
+
       const newBlog = helper.singleBlog
-      const postedBlog = await api.post('/api/blogs').send(newBlog)
+      const postedBlog = await api.post('/api/blogs')
+        .set('Authorization', `Bearer ${token1}`)
+        .send(newBlog)
+      console.log(postedBlog.body)
   
       expect(postedBlog.status).toBe(201)
   
@@ -65,7 +100,9 @@ describe('when there are blogs in the database', () => {
 
     test('without likes, should be zero', async () => {
       const newBlog = helper.singleBlogNoLikes
-      const postedBlog = await api.post('/api/blogs').send(newBlog)
+      const postedBlog = await api.post('/api/blogs')
+        .set('Authorization', `Bearer ${token1}`)
+        .send(newBlog)
 
       expect(postedBlog.status).toBe(201)
 
@@ -75,7 +112,9 @@ describe('when there are blogs in the database', () => {
 
     test('without title, return 400', async () => {
       const newBlog = helper.blogNoTitle
-      const postedBlog = await api.post('/api/blogs').send(newBlog)
+      const postedBlog = await api.post('/api/blogs')
+        .set('Authorization', `Bearer ${token1}`)
+        .send(newBlog)
 
       expect(postedBlog.status).toBe(400)
       const response = await api.get('/api/blogs')
@@ -84,9 +123,32 @@ describe('when there are blogs in the database', () => {
 
     test('without url, return 400', async () => {
       const newBlog = helper.blogNoUrl
-      const postedBlog = await api.post('/api/blogs').send(newBlog)
+      const postedBlog = await api.post('/api/blogs')
+        .set('Authorization', `Bearer ${token1}`)
+        .send(newBlog)
 
       expect(postedBlog.status).toBe(400)
+      const response = await api.get('/api/blogs')
+      expect(response.body).toHaveLength(6)
+    })
+
+    test('without token, fail 401', async () => {
+      const newBlog = helper.singleBlog
+      const postedBlog = await api.post('/api/blogs')
+        .send(newBlog)
+
+      expect(postedBlog.status).toBe(401)
+      const response = await api.get('/api/blogs')
+      expect(response.body).toHaveLength(6)
+    })
+
+    test('with invalid token, fail 401', async () => {
+      const newBlog = helper.singleBlog
+      const postedBlog = await api.post('/api/blogs')
+        .set('Authorization', `Bearer ${token1}123`)
+        .send(newBlog)
+
+      expect(postedBlog.status).toBe(401)
       const response = await api.get('/api/blogs')
       expect(response.body).toHaveLength(6)
     })
@@ -100,10 +162,25 @@ describe('when there are blogs in the database', () => {
       const firstBlog = response.body[0]
 
       const deleted = await api.delete(`/api/blogs/${firstBlog.id}`)
+        .set('Authorization', `Bearer ${token1}`)
       expect(deleted.status).toBe(204)
 
       const remainingBlogs = await api.get('/api/blogs')
       expect(remainingBlogs.body).toHaveLength(5)
+
+    })
+
+    test('blog from another user, fail and return 401', async () => {
+      const response = await api.get('/api/blogs')
+      expect(response.body).toHaveLength(6)
+      const firstBlog = response.body[0]
+
+      const deleted = await api.delete(`/api/blogs/${firstBlog.id}`)
+        .set('Authorization', `Bearer ${token2}`)
+      expect(deleted.status).toBe(401)
+
+      const remainingBlogs = await api.get('/api/blogs')
+      expect(remainingBlogs.body).toHaveLength(6)
 
     })
   })
