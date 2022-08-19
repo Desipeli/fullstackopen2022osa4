@@ -11,6 +11,10 @@ const errorHandler = (error, request, response, next) => {
   } else if (error.name === 'ValidationError') {
     console.log("Validation failed")
     return response.status(400).json({ error: error.message })
+  } else if (error.name === 'JsonWebTokenError') {
+    return response.status(401).json({
+      error: 'invalid token'
+    })
   }
 
   next(error)
